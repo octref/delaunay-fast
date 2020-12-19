@@ -1,3 +1,8 @@
+/*
+Orginally from Jay LaPorte at https://github.com/ironwallaby/delaunay/blob/master/delaunay.js
+Tweaked it so instead of raising an error it would return an empty list.
+*/
+
 var Delaunay;
 
 (function() {
@@ -45,7 +50,8 @@ var Delaunay;
 
     /* Check for coincident points */
     if(fabsy1y2 < EPSILON && fabsy2y3 < EPSILON)
-      throw new Error("Eek! Coincident points!");
+      return;
+      //throw new Error("Eek! Coincident points!");
 
     if(fabsy1y2 < EPSILON) {
       m2  = -((x3 - x2) / (y3 - y2));
@@ -120,16 +126,14 @@ var Delaunay;
           vertices[i] = vertices[i][key];
 
       /* Make an array of indices into the vertex array, sorted by the
-       * vertices' x-position. Force stable sorting by comparing indices if
-       * the x-positions are equal. */
+       * vertices' x-position. */
       indices = new Array(n);
 
       for(i = n; i--; )
         indices[i] = i;
 
       indices.sort(function(i, j) {
-        var diff = vertices[j][0] - vertices[i][0];
-        return diff !== 0 ? diff : i - j;
+        return vertices[j][0] - vertices[i][0];
       });
 
       /* Next, find the vertices of the supertriangle (which contains all other
@@ -141,10 +145,14 @@ var Delaunay;
       /* Initialize the open list (containing the supertriangle and nothing
        * else) and the closed list (which is empty since we havn't processed
        * any triangles yet). */
+      var circCircle = circumcircle(vertices, n + 0, n + 1, n + 2);
+      if (circCircle == undefined)
+        return [];
+      
       open   = [circumcircle(vertices, n + 0, n + 1, n + 2)];
       closed = [];
       edges  = [];
-
+      
       /* Incrementally add each vertex to the mesh. */
       for(i = indices.length; i--; edges.length = 0) {
         c = indices[i];
